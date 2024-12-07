@@ -1,0 +1,95 @@
+.App {
+  text-align: center;
+  font-family: 'Inter', Arial, sans-serif;
+  background-color: #f9fafb; /* Açık gri arka plan */
+  padding: 20px;
+  min-height: 100vh;
+}
+
+/* Genel form elemanları */
+input {
+  margin: 8px 0;
+  padding: 12px;
+  width: 90%;
+  border: 1px solid #d1d5db; /* Tailwind'e benzer gri ton */
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: #ffffff; /* Beyaz arka plan */
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Hafif gölge efekti */
+}
+
+input:focus {
+  outline: none;
+  border-color: #6366f1; /* Mavi focus */
+  box-shadow: 0px 0px 5px rgba(99, 102, 241, 0.5); /* Focus efekti */
+}
+
+button {
+  padding: 12px 20px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 500;
+  background-color: #6366f1; /* Indigo renk */
+  color: #ffffff;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Hafif gölge efekti */
+}
+
+button:hover {
+  background-color: #4f46e5; /* Daha koyu indigo */
+  transform: translateY(-2px); /* Hafif yukarı animasyon */
+}
+
+button:active {
+  transform: translateY(0); /* Basılınca normal pozisyona dön */
+}
+
+h1 {
+  color: #111827; /* Koyu gri */
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+h2 {
+  margin-top: 20px;
+  color: #374151; /* Orta gri */
+  font-size: 22px;
+  font-weight: 500;
+}
+
+/* Kart düzeni */
+.form-container {
+  display: flex;
+  flex-wrap: wrap; /* Ekran daraldığında alt alta gelsin */
+  justify-content: center;
+  gap: 20px; /* Kartlar arası boşluk */
+}
+
+.card {
+  width: 100%;
+  max-width: 400px; /* Kart genişliği */
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: left;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Hafif gölge efekti */
+}
+
+.card h2 {
+  text-align: center; /* Kart başlıklarını ortaya hizala */
+}
+
+.card button {
+  width: 100%; /* Butonları tam genişlikte yap */
+}
+
+@media (min-width: 768px) {
+  .card {
+    flex: 1; /* Daha büyük ekranlarda esnek genişlik */
+    max-width: 300px; /* Geniş kartları kısıtla */
+  }
+}
