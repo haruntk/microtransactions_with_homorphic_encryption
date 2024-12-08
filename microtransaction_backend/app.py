@@ -3,8 +3,12 @@ from flask_cors import CORS
 import tenseal as ts
 
 app = Flask(__name__)
-CORS(app,supports_credentials=True)
+CORS(app,supports_credentials=True,origins="https://localhost:3000")
 app.secret_key = "super_secret_key"
+
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+app.config['SESSION_COOKIE_SECURE'] = True
+
 
 user_balances = {}  
 user_passwords = {} 
