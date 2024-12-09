@@ -6,6 +6,10 @@ function App() {
   const [password, setPassword] = useState("");
   const [transactionAmount, setTransactionAmount] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [balance, setBalance] = useState(0); // Bakiyeyi ekledik
+  const [transactionHistory, setTransactionHistory] = useState([]);
+  const [usdBalance, setUsdBalance] = useState(0);
+  const [eurBalance, setEurBalance] = useState(0);
 
   const createUser = async () => {
     try {
@@ -15,7 +19,7 @@ function App() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ user_id: userId, password }),
-        credentials: "include"
+        credentials: "include",
       });
       const data = await response.json();
       alert(data.message || data.error);
@@ -32,12 +36,13 @@ function App() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ user_id: userId, password }),
-        credentials: "include"
+        credentials: "include",
       });
       const data = await response.json();
       if (response.ok) {
         setIsLoggedIn(true);
         alert(data.message);
+        await getBalance(); // Giriş yaptıktan sonra bakiyeyi al
       } else {
         alert(data.error);
       }
@@ -48,7 +53,10 @@ function App() {
 
   const logout = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:5000/logout", { method: "POST" , credentials: "include"});
+      const response = await fetch("http://127.0.0.1:5000/logout", {
+        method: "POST",
+        credentials: "include",
+      });
       const data = await response.json();
       if (response.ok) {
         setIsLoggedIn(false);
@@ -66,11 +74,14 @@ function App() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({transaction_amount: parseFloat(transactionAmount) }),
-        credentials: "include"
+        body: JSON.stringify({
+          transaction_amount: parseFloat(transactionAmount),
+        }),
+        credentials: "include",
       });
       const data = await response.json();
       alert(data.message || data.error);
+      await getBalance(); // Bakiye güncellendikten sonra bakiyeyi tekrar al
     } catch (error) {
       console.error("Bakiye güncelleme hatası:", error);
     }
@@ -84,6 +95,7 @@ function App() {
       });
       const data = await response.json();
       if (response.ok) {
+        setBalance(data.decrypted_balance); // Bakiyeyi state'e ekle
         alert(`Bakiyeniz: ${data.decrypted_balance}`);
       } else {
         alert(data.error);
@@ -93,6 +105,46 @@ function App() {
     }
   };
 
+  const getBalanceInCurrencies = async () => {
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:5000/get_balance_in_currencies",
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        setUsdBalance(data.usd_balance);
+        setEurBalance(data.eur_balance);
+      } else {
+        alert(data.error);
+      }
+    } catch (error) {
+      console.error("Bakiyeyi döviz cinsinden alma hatası:", error);
+    }
+  };
+
+  const getTransactionHistory = async () => {
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:5000/get_transaction_history",
+        {
+          method: "GET",
+          credentials: "include", // Giriş yapmış kullanıcı için cookie
+        }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        setTransactionHistory(data.transaction_history); // Gelen veriyi state'e kaydedin
+      } else {
+        alert(data.error || "İşlem geçmişi alınırken bir hata oluştu");
+      }
+    } catch (error) {
+      console.error("İşlem geçmişi alma hatası:", error);
+    }
+  };
   return (
     <div className="App">
       {!isLoggedIn ? (
@@ -145,8 +197,37 @@ function App() {
             <button onClick={updateBalance}>Güncelle</button>
           </div>
           <div className="card">
-            <h2>Bakiye Getir</h2>
-            <button onClick={getBalance}>Bakiyeyi Göster</button>
+            <h2>Bakiye: {balance} TL</h2> {/* Güncel bakiye burada */}
+          </div>
+          <div className="card">
+            <h2>Bakiyeniz</h2>
+            <button onClick={getBalanceInCurrencies}>
+              Bakiyeyi Döviz Cinsinden Göster
+            </button>
+            {usdBalance > 0 && eurBalance > 0 && (
+              <div>
+                <p>USD Bakiyesi: {usdBalance.toFixed(2)} USD</p>
+                <p>EUR Bakiyesi: {eurBalance.toFixed(2)} EUR</p>
+              </div>
+            )}
+          </div>
+          <div className="card">
+            <h2>İşlem Geçmişiniz</h2>
+            <button onClick={getTransactionHistory}>
+              İşlem Geçmişini Görüntüle
+            </button>
+            {transactionHistory.length > 0 ? (
+              <ul>
+                {transactionHistory.map((txn, index) => (
+                  <li key={index}>
+                    {txn.type === "add" ? "Ekleme" : "Çıkarma"}:{" "}
+                    {txn.encrypted_amount}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>İşlem geçmişiniz bulunmamaktadır.</p>
+            )}
           </div>
         </div>
       )}
