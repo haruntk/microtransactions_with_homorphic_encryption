@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 
 function App() {
@@ -6,7 +8,7 @@ function App() {
   const [password, setPassword] = useState("");
   const [transactionAmount, setTransactionAmount] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [balance, setBalance] = useState(0); // Bakiyeyi ekledik
+  const [balance, setBalance] = useState(0);
   const [transactionHistory, setTransactionHistory] = useState([]);
   const [usdBalance, setUsdBalance] = useState(0);
   const [eurBalance, setEurBalance] = useState(0);
@@ -22,8 +24,14 @@ function App() {
         credentials: "include",
       });
       const data = await response.json();
-      alert(data.message || data.error);
+
+      if (response.ok) {
+        toast.success(`Kullanıcı başarıyla oluşturuldu!`);
+      } else {
+        toast.error(`Hata: ${data.error} `);
+      }
     } catch (error) {
+      toast.error(`Kullanıcı oluşturma hatası `);
       console.error("Kullanıcı oluşturma hatası:", error);
     }
   };
@@ -39,14 +47,16 @@ function App() {
         credentials: "include",
       });
       const data = await response.json();
+
       if (response.ok) {
         setIsLoggedIn(true);
-        alert(data.message);
-        await getBalance(); // Giriş yaptıktan sonra bakiyeyi al
+        toast.success(`Giriş başarılı!`);
+        await getBalance();
       } else {
-        alert(data.error);
+        toast.error(`Hata: ${data.error}`);
       }
     } catch (error) {
+      toast.error(`Giriş yapma hatası `);
       console.error("Giriş yapma hatası:", error);
     }
   };
@@ -58,16 +68,21 @@ function App() {
         credentials: "include",
       });
       const data = await response.json();
+
       if (response.ok) {
         setIsLoggedIn(false);
-        alert(data.message || "Çıkış yapıldı!");
+        toast.success(`Çıkış yapıldı!`);
+      } else {
+        toast.error(`Hata: ${data.error}`);
       }
     } catch (error) {
+      toast.error(`Çıkış yapma hatası `);
       console.error("Çıkış yapma hatası:", error);
     }
   };
 
   const updateBalance = async () => {
+    const startTime = performance.now();
     try {
       const response = await fetch("http://127.0.0.1:5000/update_balance", {
         method: "POST",
@@ -80,32 +95,48 @@ function App() {
         credentials: "include",
       });
       const data = await response.json();
-      alert(data.message || data.error);
-      await getBalance(); // Bakiye güncellendikten sonra bakiyeyi tekrar al
+      const endTime = performance.now();
+      const elapsedTime = (endTime - startTime).toFixed(2);
+
+      if (response.ok) {
+        toast.success(`Bakiye güncellendi! Süre: ${elapsedTime} ms`);
+        await getBalance();
+      } else {
+        toast.error(`Hata: ${data.error} (Süre: ${elapsedTime} ms)`);
+      }
     } catch (error) {
+      toast.error(`Bakiye güncelleme hatası )`);
       console.error("Bakiye güncelleme hatası:", error);
     }
   };
 
   const getBalance = async () => {
+    const startTime = performance.now();
     try {
       const response = await fetch("http://127.0.0.1:5000/get_balance", {
         method: "GET",
         credentials: "include",
       });
       const data = await response.json();
+      const endTime = performance.now();
+      const elapsedTime = (endTime - startTime).toFixed(2);
+
       if (response.ok) {
-        setBalance(data.decrypted_balance); // Bakiyeyi state'e ekle
-        alert(`Bakiyeniz: ${data.decrypted_balance}`);
+        setBalance(data.decrypted_balance);
+        toast.success(
+          `Bakiyeniz: ${data.decrypted_balance} TL (Süre: ${elapsedTime} ms)`
+        );
       } else {
-        alert(data.error);
+        toast.error(`Hata: ${data.error} (Süre: ${elapsedTime} ms)`);
       }
     } catch (error) {
+      toast.error(`Bakiye alma hatası `);
       console.error(error);
     }
   };
 
   const getBalanceInCurrencies = async () => {
+    const startTime = performance.now();
     try {
       const response = await fetch(
         "http://127.0.0.1:5000/get_balance_in_currencies",
@@ -115,38 +146,55 @@ function App() {
         }
       );
       const data = await response.json();
+      const endTime = performance.now();
+      const elapsedTime = (endTime - startTime).toFixed(2);
+
       if (response.ok) {
         setUsdBalance(data.usd_balance);
         setEurBalance(data.eur_balance);
+        toast.success(
+          `Döviz bakiyesi başarıyla alındı! (Süre: ${elapsedTime} ms)`
+        );
       } else {
-        alert(data.error);
+        toast.error(`Hata: ${data.error} (Süre: ${elapsedTime} ms)`);
       }
     } catch (error) {
+      toast.error(`Bakiyeyi döviz cinsinden alma hatası )`);
       console.error("Bakiyeyi döviz cinsinden alma hatası:", error);
     }
   };
 
   const getTransactionHistory = async () => {
+    const startTime = performance.now();
     try {
       const response = await fetch(
         "http://127.0.0.1:5000/get_transaction_history",
         {
           method: "GET",
-          credentials: "include", // Giriş yapmış kullanıcı için cookie
+          credentials: "include",
         }
       );
       const data = await response.json();
+      const endTime = performance.now();
+      const elapsedTime = (endTime - startTime).toFixed(2);
+
       if (response.ok) {
-        setTransactionHistory(data.transaction_history); // Gelen veriyi state'e kaydedin
+        setTransactionHistory(data.transaction_history);
+        toast.success(
+          `İşlem geçmişi başarıyla alındı! (Süre: ${elapsedTime} ms)`
+        );
       } else {
-        alert(data.error || "İşlem geçmişi alınırken bir hata oluştu");
+        toast.error(`Hata: ${data.error} (Süre: ${elapsedTime} ms)`);
       }
     } catch (error) {
+      toast.error(`İşlem geçmişi alma hatası`);
       console.error("İşlem geçmişi alma hatası:", error);
     }
   };
+
   return (
     <div className="App">
+      <ToastContainer position="bottom-right" autoClose={3000} />
       {!isLoggedIn ? (
         <div className="form-container">
           <div className="card">
@@ -165,7 +213,6 @@ function App() {
             />
             <button onClick={createUser}>Kayıt Ol</button>
           </div>
-
           <div className="card">
             <h2>Giriş Yap</h2>
             <input
@@ -197,7 +244,7 @@ function App() {
             <button onClick={updateBalance}>Güncelle</button>
           </div>
           <div className="card">
-            <h2>Bakiye: {balance} TL</h2> {/* Güncel bakiye burada */}
+            <h2>Bakiye: {balance} TL</h2>
           </div>
           <div className="card">
             <h2>Bakiyeniz</h2>
