@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 import tenseal as ts
+from time import time
+
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, origins="https://localhost:3000")
@@ -20,7 +22,7 @@ EXCHANGE_RATES = {
 
 def create_context():
     context = ts.context(ts.SCHEME_TYPE.CKKS, poly_modulus_degree=8192, coeff_mod_bit_sizes=[60, 40, 40, 60])
-    context.global_scale = 2**40
+    context.global_scale = 2**50
     context.generate_galois_keys()
     context.generate_relin_keys()
     return context
@@ -61,8 +63,11 @@ def login_user():
     print(session)
     return jsonify({'message': 'Başarıyla giriş yapıldı!'}), 200
 
+
 @app.route('/update_balance', methods=['POST'])
 def update_balance():
+    start_time = time()  # Başlangıç zamanı
+    
     if 'user_id' not in session:
         return jsonify({'error': 'Giriş yapılmadı'}), 403
 
@@ -87,7 +92,13 @@ def update_balance():
         "encrypted_amount": encrypted_transaction
     })
 
-    return jsonify({'message': 'Bakiye güncellendi'}), 200
+    end_time = time()  # Bitiş zamanı
+    elapsed_time = end_time - start_time  # Geçen süre
+    
+    return jsonify({
+        'message': 'Bakiye güncellendi',
+        'elapsed_time': f'{elapsed_time:.6f} saniye'
+    }), 200
 
 @app.route('/get_balance', methods=['GET'])
 def get_balance():
